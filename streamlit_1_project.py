@@ -1,3 +1,5 @@
+%%writefile app.py
+
 import pandas as pd
 from sklearn.decomposition import PCA
 from mpl_toolkits.mplot3d import Axes3D #3d оси
@@ -45,18 +47,18 @@ plt.close()  # Close the first graph
 st.write("Let's check the numerical signs for outliers and we use Z-score to determine outliers")
 
 for i in [i for i in df.columns if df[i].dtype=='int']:
-data=df[i]
-z_scores = stats.zscore(data)
-threshold = 3
-outliers = df[np.abs(z_scores) > threshold]
-df.loc[outliers.index, i] = None
+  data=df[i]
+  z_scores = stats.zscore(data)
+  threshold = 3
+  outliers = df[np.abs(z_scores) > threshold]
+  df.loc[outliers.index, i] = None
 df.isna().sum().plot(kind='barh')
 st.pyplot()
 
 st.text('As we can see from the heat map and graph, we have columns that do not carry significance and abnormal data that we will delete')
 
 for i in ['NumWebPurchases', 'NumCatalogPurchases','NumWebVisitsMonth']:
-df=df.loc[df[i]<15]
+  df=df.loc[df[i]<15]
 df=df.drop(['Complain','AcceptedCmp2','Z_CostContact','Z_Revenue','AcceptedCmp3','NumDealsPurchases','Recency','ID','Dt_Customer','Response'],axis=1)
 df=df.loc[df['Income']<100000]#We also see values that are knocked out of the total mass in the amount of profit
 df=df.loc[df['Year_Birth']>1945]#We can see anomalies in the column with the date of birth, and therefore we will remove everyone older than 1945
@@ -76,23 +78,23 @@ bad=['Absurd','Alone','YOLO']
 df=df.query('Marital_Status not in @bad')
 
 def maried_status(data):
-
-if data['Marital_Status']in ['Married','Together']:
-return 'Married'
-elif data['Marital_Status'] in ['Divorced','Widow']:
-return 'Divorced'
-else:
-return data['Marital_Status']
+  
+  if data['Marital_Status']in ['Married','Together']:
+    return 'Married'
+  elif data['Marital_Status'] in ['Divorced','Widow']:
+    return 'Divorced'
+  else:
+    return data['Marital_Status']
 
 def offline(data):
-online=data['NumWebPurchases']+data['NumCatalogPurchases']
-offline=data['NumStorePurchases']
-if online==0:
-return 1
-elif offline==0:
-return 0
-else:
-return np.round(offline/(online+offline),2)
+  online=data['NumWebPurchases']+data['NumCatalogPurchases']
+  offline=data['NumStorePurchases']
+  if online==0:
+    return 1
+  elif offline==0:
+    return 0
+  else:
+    return np.round(offline/(online+offline),2)
 
 df['Marital_Status']=df.apply(maried_status,axis=1)
 
@@ -115,7 +117,7 @@ st.write('')
 columns_num=[i for i in  df.columns if df[i].dtypes!='object' and i not in ['is_active','Response']]
 
 preprocesing=make_column_transformer((OrdinalEncoder(),['Education','Marital_Status']),
-                            (StandardScaler(),columns_num),remainder='passthrough')
+                                     (StandardScaler(),columns_num),remainder='passthrough')
 important=df[[i for i in df.columns][:4]]
 
 
@@ -142,45 +144,45 @@ st.title('Task 1: It is necessary to identify the model that will best be able t
 
 
 class claster:
-def __init__(self,data):
-self.data=data
+  def __init__(self,data):
+    self.data=data
 
-def preprocesing(self,metod_of_object,metod_of_num):
-columns_num=[i for i in  self.data.columns if self.data[i].dtypes!='object' and i not in ['is_active','Response']]
+  def preprocesing(self,metod_of_object,metod_of_num):
+    columns_num=[i for i in  self.data.columns if self.data[i].dtypes!='object' and i not in ['is_active','Response']]
 
-preprocesing=make_column_transformer((metod_of_object,['Education','Marital_Status']),
-                            (metod_of_num,columns_num),remainder='passthrough')
+    preprocesing=make_column_transformer((metod_of_object,['Education','Marital_Status']),
+                                     (metod_of_num,columns_num),remainder='passthrough')
+    
+    self.df_encoder=pd.DataFrame(preprocesing.fit_transform(self.data),columns=self.data.columns)
+    print('+')
+    pca=PCA(n_components=3)
+    self.df_pca=pd.DataFrame(pca.fit_transform(self.df_encoder),columns=['list_c1','list_c2','list_c3'])
+    return self.df_pca
 
-self.df_encoder=pd.DataFrame(preprocesing.fit_transform(self.data),columns=self.data.columns)
-print('+')
-pca=PCA(n_components=3)
-self.df_pca=pd.DataFrame(pca.fit_transform(self.df_encoder),columns=['list_c1','list_c2','list_c3'])
-return self.df_pca
+  def detected(self,algoritm,data):
+    self.algoritm=algoritm
+    Elbow_M = KElbowVisualizer(self.algoritm, k=10)
+    Elbow_M.fit(data)
+    Elbow_M.show()
 
-def detected(self,algoritm,data):
-self.algoritm=algoritm
-Elbow_M = KElbowVisualizer(self.algoritm, k=10)
-Elbow_M.fit(data)
-Elbow_M.show()
-
-def work(self,model,data,num,score):
-models=model.fit(data)
-data['labels']=models.labels_
-silhouette_score=score[0](self.df_pca, models.labels_)
-davies_bouldin_score=score[1](self.df_pca, models.labels_)
-calinski_harabasz_score=score[2](self.df_pca, models.labels_)
-
-figer= go.Figure(data=[go.Scatter3d(x=data['list_c1'],y=data['list_c2'],
-z=data['list_c3'],mode='markers',marker=dict(
-   size=4,
-   color=data['labels'], 
-   opacity=0.8))])
-
-st.plotly_chart(figer)
-plt.show()
-st.write(pd.DataFrame({'Score':[silhouette_score,davies_bouldin_score,calinski_harabasz_score]},index=['silhouette_score','davies_bouldin_score','calinski_harabasz_score']))
-return model.labels_
-
+  def work(self,model,data,num,score):
+    models=model.fit(data)
+    data['labels']=models.labels_
+    silhouette_score=score[0](self.df_pca, models.labels_)
+    davies_bouldin_score=score[1](self.df_pca, models.labels_)
+    calinski_harabasz_score=score[2](self.df_pca, models.labels_)
+    
+    figer= go.Figure(data=[go.Scatter3d(x=data['list_c1'],y=data['list_c2'],
+    z=data['list_c3'],mode='markers',marker=dict(
+            size=4,
+            color=data['labels'], 
+            opacity=0.8))])
+          
+    st.plotly_chart(figer)
+    plt.show()
+    st.write(pd.DataFrame({'Score':[silhouette_score,davies_bouldin_score,calinski_harabasz_score]},index=['silhouette_score','davies_bouldin_score','calinski_harabasz_score']))
+    return model.labels_
+    
 
 st.write('I decided to use two algorithms these are K means and Agglomerative (since these are algorithms of different principles, it will be interesting to see which of them will show the best indicator)')
 st.text('We use three metrics :')
@@ -200,66 +202,66 @@ models = ['KMeans', 'Aglomeriv']
 selected_models = st.multiselect('Choose a model for clustering', models)
 
 if 'KMeans' in selected_models:
-pre=['StandardScaler','RobustScaler','MinMaxScaler']
-preproces=st.multiselect('Select a model for preprocessing features', pre)
+  pre=['StandardScaler','RobustScaler','MinMaxScaler']
+  preproces=st.multiselect('Select a model for preprocessing features', pre)
 
-if 'StandardScaler' in preproces:
-data=claster(df)
-kmeans=data.preprocesing(OrdinalEncoder(),StandardScaler())
-num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
-data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])  
-if st.button('Use it ?'): 
-df['clusters']=data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
+  if 'StandardScaler' in preproces:
+    data=claster(df)
+    kmeans=data.preprocesing(OrdinalEncoder(),StandardScaler())
+    num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
+    data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])  
+    if st.button('Use it ?'): 
+      df['clusters']=data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
 
-if 'RobustScaler' in preproces:
-data=claster(df)
-kmeans=data.preprocesing(OrdinalEncoder(),RobustScaler())
-num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
-data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score]) 
-if st.button('Use it ?'): 
-df['clusters']=data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
+  if 'RobustScaler' in preproces:
+    data=claster(df)
+    kmeans=data.preprocesing(OrdinalEncoder(),RobustScaler())
+    num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
+    data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score]) 
+    if st.button('Use it ?'): 
+      df['clusters']=data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
 
-if 'MinMaxScaler' in preproces:
-data=claster(df)
-kmeans=data.preprocesing(OrdinalEncoder(),MinMaxScaler())
-num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
-data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
-if st.button('Use it ?'): 
-df['clusters']=data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
+  if 'MinMaxScaler' in preproces:
+    data=claster(df)
+    kmeans=data.preprocesing(OrdinalEncoder(),MinMaxScaler())
+    num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
+    data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
+    if st.button('Use it ?'): 
+      df['clusters']=data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
 
 if 'Aglomeriv' in selected_models:
-pre=['StandardScaler','RobustScaler','MinMaxScaler']
-preproces=st.multiselect('Select a model for preprocessing features', pre)
+  pre=['StandardScaler','RobustScaler','MinMaxScaler']
+  preproces=st.multiselect('Select a model for preprocessing features', pre)
 
-if 'StandardScaler' in preproces:
-data=claster(df)
-aglo=data.preprocesing(OrdinalEncoder(),StandardScaler())
-num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
-st.text('Выебри метод :"ward","complete","single","average"')
-metod=st.text_input(' Method :')
-data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
-if st.button('Use it ?'):
-df['clusters']=data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
+  if 'StandardScaler' in preproces:
+    data=claster(df)
+    aglo=data.preprocesing(OrdinalEncoder(),StandardScaler())
+    num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
+    st.text('Выебри метод :"ward","complete","single","average"')
+    metod=st.text_input(' Method :')
+    data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
+    if st.button('Use it ?'):
+      df['clusters']=data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
+      
+  if 'RobustScaler' in preproces:
+    data=claster(df)
+    aglo=data.preprocesing(OrdinalEncoder(),RobustScaler())
+    num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
+    st.text('Выебри метод :"ward","complete","single","average"')
+    metod=st.text_input(' Method :')
+    data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
+    if st.button('Use it ?'):
+      df['clusters']=data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
 
-if 'RobustScaler' in preproces:
-data=claster(df)
-aglo=data.preprocesing(OrdinalEncoder(),RobustScaler())
-num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
-st.text('Выебри метод :"ward","complete","single","average"')
-metod=st.text_input(' Method :')
-data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
-if st.button('Use it ?'):
-df['clusters']=data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
-
-if 'MinMaxScaler' in preproces:
-data=claster(df)
-aglo=data.preprocesing(OrdinalEncoder(),MinMaxScaler())
-num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
-st.text('Выебри метод :ward,complete,single,average')
-metod=st.text_input(' Method :')
-data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
-if st.button('Use it?'):
-df['clusters']=data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
+  if 'MinMaxScaler' in preproces:
+    data=claster(df)
+    aglo=data.preprocesing(OrdinalEncoder(),MinMaxScaler())
+    num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
+    st.text('Выебри метод :ward,complete,single,average')
+    metod=st.text_input(' Method :')
+    data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
+    if st.button('Use it?'):
+      df['clusters']=data.work(AgglomerativeClustering(n_clusters=num_of_clusters, linkage=metod,compute_full_tree=True),aglo,2,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
 
 
 new_df=df
@@ -275,14 +277,14 @@ st.write('The ratio of the resulting clusters')
 st.table(new_df['clusters'].value_counts(normalize=True))
 
 def rename(data):
-if data['clusters'] == 0:
-return 'Group_1'
-elif data['clusters']==1:
-return 'Group_2'
-elif data['clusters'] ==3:
-return 'Group_3'
-else:
-return 'Group_4'
+  if data['clusters'] == 0:
+    return 'Group_1'
+  elif data['clusters']==1:
+    return 'Group_2'
+  elif data['clusters'] ==3:
+    return 'Group_3'
+  else:
+    return 'Group_4'
 
 new_df['clusters']=new_df.apply(rename,axis=1)
 
@@ -294,9 +296,9 @@ st.text('A third group that will display the number of purchases where they are 
 
 first_category=['Year_Birth', 'Education', 'Marital_Status', 'Income','Basket','Childs']
 second_category=['MntWines','MntFruits', 'MntMeatProducts', 'MntFishProducts',
-       'MntSweetProducts','MntGoldProds']
+                'MntSweetProducts','MntGoldProds']
 third_category=['NumWebVisitsMonth','NumWebPurchases', 'NumCatalogPurchases','NumStorePurchases',
-       'procent_offline','count_of_purchases']
+                'procent_offline','count_of_purchases']
 
 
 
@@ -304,33 +306,33 @@ third_category=['NumWebVisitsMonth','NumWebPurchases', 'NumCatalogPurchases','Nu
 st.title('First group')
 
 for i in first_category:
-if i not in ['Income','Basket','Year_Birth']:
-plt.figure(figsize=(8,8))
-data=new_df.pivot_table(index=i,columns='clusters',values='MntSweetProducts',aggfunc='count')
-pivot_df = data.reset_index()
-melted_df = pivot_df.melt(id_vars=i, value_name='count', var_name='clusters')
-sns.barplot(x=i, y='count', hue='clusters', data=melted_df, palette=my_colors)
-st.pyplot()
-plt.show()
-elif i=='Basket':
-plt.figure(figsize=(8,8))
-sns.kdeplot(data=new_df,x=new_df.loc[new_df[i]<10000][i],palette=my_colors,hue='clusters')
-plt.axvline(new_df['Basket'].median(), linestyle='--', color='red')
-plt.text(new_df['Basket'].median(),0,'Медиана корзины')
-plt.show()
-plt.figure(figsize=(8,8))
-sns.jointplot(x=new_df[i],y=new_df['Income'],hue=new_df['clusters'],kind='kde',palette=my_colors,alpha=0.6)
-st.pyplot()
-plt.show()
-elif i=='Year_Birth':
-plt.figure(figsize=(8,8))
-sns.kdeplot(data=new_df,x=new_df[i],palette=my_colors,hue='clusters',common_norm=False)
-st.pyplot()
-else:
-plt.figure(figsize=(8,8))
-sns.kdeplot(data=new_df,x=new_df[i],palette=my_colors,hue='clusters')
-st.pyplot()
-plt.show()
+  if i not in ['Income','Basket','Year_Birth']:
+    plt.figure(figsize=(8,8))
+    data=new_df.pivot_table(index=i,columns='clusters',values='MntSweetProducts',aggfunc='count')
+    pivot_df = data.reset_index()
+    melted_df = pivot_df.melt(id_vars=i, value_name='count', var_name='clusters')
+    sns.barplot(x=i, y='count', hue='clusters', data=melted_df, palette=my_colors)
+    st.pyplot()
+    plt.show()
+  elif i=='Basket':
+    plt.figure(figsize=(8,8))
+    sns.kdeplot(data=new_df,x=new_df.loc[new_df[i]<10000][i],palette=my_colors,hue='clusters')
+    plt.axvline(new_df['Basket'].median(), linestyle='--', color='red')
+    plt.text(new_df['Basket'].median(),0,'Медиана корзины')
+    plt.show()
+    plt.figure(figsize=(8,8))
+    sns.jointplot(x=new_df[i],y=new_df['Income'],hue=new_df['clusters'],kind='kde',palette=my_colors,alpha=0.6)
+    st.pyplot()
+    plt.show()
+  elif i=='Year_Birth':
+    plt.figure(figsize=(8,8))
+    sns.kdeplot(data=new_df,x=new_df[i],palette=my_colors,hue='clusters',common_norm=False)
+    st.pyplot()
+  else:
+    plt.figure(figsize=(8,8))
+    sns.kdeplot(data=new_df,x=new_df[i],palette=my_colors,hue='clusters')
+    st.pyplot()
+    plt.show()
 
 st.write("""Conclusion about first part""")
 st.subheader("Age:")
@@ -339,7 +341,7 @@ st.write("- Group 2 comes after from 1958 to 1972")
 st.write("- Group 3 goes from 1978 to 1982")
 st.write("- The last 4 groups are from 1988 to 2000")
 st.write("")
-# Education
+  # Education
 st.subheader("Education:")
 st.write("- The most educated is Group 2, followed by Group 3")
 st.write("- The less educated group is the 4th group")
@@ -375,9 +377,9 @@ st.write("- People from groups 1 and 3 are the most large")
 
 st.title('Second group')
 for i in second_category:
-
-sns.jointplot(x=new_df[i],y=new_df['Income'],hue=new_df['clusters'],kind='kde',palette=my_colors,alpha=0.6)
-st.pyplot()
+  
+  sns.jointplot(x=new_df[i],y=new_df['Income'],hue=new_df['clusters'],kind='kde',palette=my_colors,alpha=0.6)
+  st.pyplot()
 
 st.write('')
 # Alcohol sales
@@ -421,14 +423,14 @@ st.write("- The 4 groups that buy up to 50 units bring the company the most mone
 
 st.title('Third group')
 for i in third_category:
-if i not in ['procent_offline','count_of_purchases']:
-plt.figure(figsize=(10,7))
-sns.barplot(x=new_df[i],y=new_df['Income'],hue=new_df['clusters'], palette=my_colors)
-st.pyplot()
-else:
-plt.figure(figsize=(10,7))
-sns.jointplot(x=new_df[i],y=new_df['Income'],hue=new_df['clusters'],kind='kde',palette=my_colors,alpha=0.6)
-st.pyplot()
+  if i not in ['procent_offline','count_of_purchases']:
+    plt.figure(figsize=(10,7))
+    sns.barplot(x=new_df[i],y=new_df['Income'],hue=new_df['clusters'], palette=my_colors)
+    st.pyplot()
+  else:
+    plt.figure(figsize=(10,7))
+    sns.jointplot(x=new_df[i],y=new_df['Income'],hue=new_df['clusters'],kind='kde',palette=my_colors,alpha=0.6)
+    st.pyplot()
 
 st.subheader("Site visit:")
 st.write("- We see that the 1st and 4th group visited the site at least once")
@@ -466,20 +468,20 @@ color_map={'Group_1': 'red', 'Group_2': 'blue', 'Group_3': 'green','Group_4':'ye
 st.title('Conduct your own research')
 
 if st.checkbox('scatter'):
-columns_1=new_df.columns
-selected_column_1 = st.selectbox('Select a column for the axis X ', columns_1)
-columns_2=new_df.columns
-selected_column_2 = st.selectbox('Select a column for the axis Y', columns_2)
-fig=px.scatter(new_df, y=selected_column_2,x=selected_column_1, marginal_x='histogram', marginal_y='histogram',color='clusters',color_discrete_map=color_map)
-
-st.plotly_chart(fig)
+      columns_1=new_df.columns
+      selected_column_1 = st.selectbox('Select a column for the axis X ', columns_1)
+      columns_2=new_df.columns
+      selected_column_2 = st.selectbox('Select a column for the axis Y', columns_2)
+      fig=px.scatter(new_df, y=selected_column_2,x=selected_column_1, marginal_x='histogram', marginal_y='histogram',color='clusters',color_discrete_map=color_map)
+      
+      st.plotly_chart(fig)
 
 if st.checkbox('histogram'):
-columns_x=new_df.columns
-selected_column_x = st.selectbox('Select a column for the axis X ', columns_x)
-fige = px.histogram(new_df, x=selected_column_x, nbins=100, opacity=0.7,color='clusters',color_discrete_map=color_map)
-fige.update_layout(xaxis_rangeslider_visible=True)
-st.plotly_chart(fige) 
+      columns_x=new_df.columns
+      selected_column_x = st.selectbox('Select a column for the axis X ', columns_x)
+      fige = px.histogram(new_df, x=selected_column_x, nbins=100, opacity=0.7,color='clusters',color_discrete_map=color_map)
+      fige.update_layout(xaxis_rangeslider_visible=True)
+      st.plotly_chart(fige) 
 
 st.title('Task 3: Draw conclusions and make suggestions.') 
 
@@ -523,6 +525,30 @@ st.subheader("Group 3:")
 st.write("- Middle-aged demographic")
 st.write("- Married")
 st.write("- High profit generation")
+st.write("- Low average basket value")
+st.write("- Similar preferences to Group 1")
+st.write("")
+st.write("Recomended:")
+st.write("- Implement family-oriented promotions, considering their marital status and higher spending power.")
+st.write("- Offer bundle deals or discounts to encourage increased spending per transaction.")
+st.write("- Use both digital and traditional marketing channels to engage with them effectively.")
+st.write("- Send personalized offers and promotions based on their purchase history and preferences.")
+st.write("- Use family-oriented events or in-store experiences to keep them engaged and interested in your brand.")
+st.write("- Leverage both digital and traditional marketing channels to maintain contact and encourage repeat purchases.")
+st.write("")
 
-
-
+# Group 4
+st.subheader("Group 4:")
+st.write("- Younger demographic")
+st.write("- Less educated")
+st.write("- High profit generation with potential")
+st.write("- Prefers purchasing fruits")
+st.write("- Highly engaged with online store and catalog")
+st.write("")
+st.write("Recomended:")
+st.write("- Encourage fruit purchases by offering discounts, bundles, or seasonal promotions.")
+st.write("- Invest in improving the online shopping experience and promote exclusive online deals.")
+st.write("- Utilize digital marketing channels, such as social media, email marketing, and influencer partnerships.")
+st.write("- Implement a digital loyalty program that rewards them for repeat online purchases and catalog usage.")
+st.write("- Use email marketing and social media to share exclusive online deals, seasonal fruit promotions, and relevant content.")
+st.write("- Offer personalized product recommendations and a seamless online shopping experience to keep them engaged and loyal to your brand.")
