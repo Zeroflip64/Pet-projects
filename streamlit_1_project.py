@@ -286,7 +286,7 @@ def rename(data):
     return 'Group_3'
   else:
     return 'Group_4'
-st.write(new_df.info())
+
 new_df['clusters']=new_df.apply(rename,axis=1)
 
 st.title('Task 2: To analyze the resulting groups.')
@@ -327,7 +327,7 @@ for i in first_category:
     plt.show()
   elif i=='Year_Birth':
     plt.figure(figsize=(8,8))
-    sns.kdeplot(data=new_df,x=new_df[i],palette=my_colors,hue='clusters',common_norm=False)
+    sns.kdeplot(data=new_df,x=new_df[i],palette=my_colors,hue='clusters')
     st.pyplot()
   else:
     plt.figure(figsize=(8,8))
