@@ -327,7 +327,7 @@ for i in first_category:
     plt.show()
   elif i=='Year_Birth':
     plt.figure(figsize=(8,8))
-    #sns.kdeplot(data=new_df,x=new_df[i],palette=my_colors,hue='clusters')
+    sns.kdeplot(data=new_df,x=new_df[i].astype('int'),palette=my_colors,hue='clusters')
     st.pyplot()
   else:
     plt.figure(figsize=(8,8))
