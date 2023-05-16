@@ -12,7 +12,7 @@ from pyngrok import ngrok
 import os
 
 # Commented out IPython magic to ensure Python compatibility.
-# %%writefile app.py
+
 # 
 # import pandas as pd
 # from sklearn.decomposition import PCA
@@ -566,14 +566,7 @@ import os
 # st.write("- Implement a digital loyalty program that rewards them for repeat online purchases and catalog usage.")
 # st.write("- Use email marketing and social media to share exclusive online deals, seasonal fruit promotions, and relevant content.")
 # st.write("- Offer personalized product recommendations and a seamless online shopping experience to keep them engaged and loyal to your brand.")
-#
-
-port = 8502
 
 
-ngrok.set_auth_token("2OPd0SjgLnOyuQaMw271tkOgGJX_6NbBsSBfgZRtwsqDpd5Ri")
-public_url = ngrok.connect(port, "http", bind_tls=True)
-print(f"Your Streamlit app is accessible at {public_url}")
 
-
-!streamlit run app.py --server.port {port}
+\
