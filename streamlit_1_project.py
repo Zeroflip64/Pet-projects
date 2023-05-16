@@ -27,7 +27,7 @@ st.text('Task 3: Draw conclusions and make suggestions.')
 url = 'https://github.com/Zeroflip64/Pet-projects/raw/main/marketing_campaign.csv'
 file_path = 'marketing_campaign.csv'
 pd.read_csv(url).to_csv(file_path, index=False)
-df = pd.read_csv(file_path)
+df = pd.read_csv(url,sep='\t')
 my_colors=['#730080','#00ab66','#636363','#779f73']
 
 
