@@ -286,7 +286,7 @@ def rename(data):
     return 'Group_3'
   else:
     return 'Group_4'
-
+st.write(df.info())
 new_df['clusters']=new_df.apply(rename,axis=1)
 
 st.title('Task 2: To analyze the resulting groups.')
