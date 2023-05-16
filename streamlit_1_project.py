@@ -24,7 +24,10 @@ st.text('Task 1: It is necessary to identify the model that will best be able to
 st.text('Task 2: To analyze the resulting groups.')
 st.text('Task 3: Draw conclusions and make suggestions.')
 
-df=pd.read_csv('https://github.com/Zeroflip64/Pet-projects/blob/main/marketing_campaign.csv')
+url = 'https://github.com/Zeroflip64/Pet-projects/raw/main/marketing_campaign.csv'
+file_path = 'marketing_campaign.csv'
+pd.read_csv(url).to_csv(file_path, index=False)
+df = pd.read_csv(file_path)
 my_colors=['#730080','#00ab66','#636363','#779f73']
 
 
