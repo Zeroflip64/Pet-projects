@@ -217,7 +217,7 @@ if 'KMeans' in selected_models:
   if 'RobustScaler' in preproces:
     data=claster(df)
     kmeans=data.preprocesing(OrdinalEncoder(),RobustScaler())
-    num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12)
+    num_of_clusters=st.number_input('select the number of clusters', min_value=2, max_value=12,step=1 )
     data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score]) 
     if st.button('Use it ?'): 
       df['clusters']=data.work(KMeans(n_clusters=num_of_clusters),kmeans,num_of_clusters,[silhouette_score,davies_bouldin_score,calinski_harabasz_score])
