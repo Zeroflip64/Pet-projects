@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-df=pd.read_csv('/content/drive/MyDrive/учеба/marketing_campaign.csv',sep='\t')
+df=pd.read_csv('https://github.com/Zeroflip64/Pet-projects/blob/main/marketing_campaign.csv',sep='\t')
 my_colors=['#730080','#00ab66','#636363','#779f73']
 
 
