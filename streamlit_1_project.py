@@ -25,8 +25,6 @@ st.text('Task 2: To analyze the resulting groups.')
 st.text('Task 3: Draw conclusions and make suggestions.')
 
 url = 'https://github.com/Zeroflip64/Pet-projects/raw/main/marketing_campaign.csv'
-file_path = 'marketing_campaign.csv'
-pd.read_csv(url).to_csv(file_path, index=False)
 df = pd.read_csv(url,sep='\t')
 my_colors=['#730080','#00ab66','#636363','#779f73']
 
@@ -38,7 +36,7 @@ st.table(df.head())
 st.write("Let's create a correlation matrix between the features to determine which features are important")
 
 
-matrix_corr=df.corr()
+matrix_corr=df.corr(method='spearman')
 fig, ax = plt.subplots(figsize=(20, 10))
 go.Figure(data=go.Heatmap(z=matrix_corr))
 sns.heatmap(matrix_corr, annot=True, ax=ax)
