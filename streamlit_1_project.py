@@ -1,4 +1,4 @@
-pip install PCA
+!pip install PCA
 import pandas as pd
 from sklearn.decomposition import PCA
 from mpl_toolkits.mplot3d import Axes3D #3d оси
