@@ -1,7 +1,7 @@
 
 import pandas as pd
 
-from mpl_toolkits.mplot3d import Axes3D #3d оси
+
 from yellowbrick.cluster import KElbowVisualizer#выбор кролчества кластеров
 from sklearn.cluster import KMeans,AgglomerativeClustering,DBSCAN
 from sklearn.preprocessing import OrdinalEncoder,StandardScaler,RobustScaler,MinMaxScaler
