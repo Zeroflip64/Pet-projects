@@ -266,7 +266,7 @@ if 'Aglomeriv' in selected_models:
 
 
 new_df=df
-new_df['clusters']=new_df['clusters'].astype('category')
+new_df['clusters']=new_df['clusters'].astype('object')
 
 
 
