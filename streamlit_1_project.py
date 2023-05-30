@@ -14,6 +14,8 @@ from scipy import stats
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+import phik
+from phik import phik_matrix
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
 st.title("Project: Clustering of store customers to identify the best offers within the store chain.")
@@ -36,10 +38,12 @@ st.table(df.head())
 st.write("Let's create a correlation matrix between the features to determine which features are important")
 
 
-matrix_corr=df.corr(method='spearman')
+matrix_corr=df.phik_matrix()
+
 fig, ax = plt.subplots(figsize=(20, 10))
 go.Figure(data=go.Heatmap(z=matrix_corr))
 sns.heatmap(matrix_corr, annot=True, ax=ax)
+
 st.pyplot(fig)
 plt.close()  # Close the first graph
 
